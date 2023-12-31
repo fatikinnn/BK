@@ -147,62 +147,42 @@ include_once("../../koneksi.php");
             <div class="card-body">
             <a href="tambah.php" class="btn btn-primary mb-3">Tambah Jadwal Periksa</a>
 
-            <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
-    <label for="id_dokter">Dokter:</label>
-    <select name="id_dokter" required>
-        <?php
-        // Query untuk mendapatkan daftar ID Dokter dan Nama Dokter dari database
-        $query_dokter = "SELECT id, nama FROM dokter";
-        $result_dokter = mysqli_query($koneksi, $query_dokter);
-
-        if ($result_dokter) {
-            while ($row_dokter = mysqli_fetch_assoc($result_dokter)) {
-                echo "<option value='" . $row_dokter['id'] . "'>" . $row_dokter['nama'] . "</option>";
-            }
-        } else {
-            echo "<option value=''>Error fetching data</option>";
-        }
-        ?>
-    </select>
-    <br>
-
-    <label for="hari">Hari:</label>
-    <select name="hari" required>
-        <option value="Senin">Senin</option>
-        <option value="Selasa">Selasa</option>
-        <option value="Rabu">Rabu</option>
-        <option value="Kamis">Kamis</option>
-        <option value="Jumat">Jumat</option>
-    </select>
-    <br>
-
-    <label for="jam_mulai">Jam Mulai:</label>
-    <input type="time" name="jam_mulai" required>
-    <br>
-
-    <label for="jam_selesai">Jam Selesai:</label>
-    <input type="time" name="jam_selesai" required>
-    <br>
-
-    <button type="submit">Simpan</button>
-</form>
+            <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Nama Dokter</th>
+                            <th>Hari</th>
+                            <th>Jam Mulai</th>
+                            <th>Jam Selesai</th>
+                            <th>Aksi</th> <!-- Tambah baris ini -->
+                        </tr>
+                    </thead>
+                    <tbody>
                         <?php
-                        if ($_SERVER["REQUEST_METHOD"] == "POST") {
-                            $id_dokter = $_POST["id_dokter"];
-                            $hari = $_POST["hari"];
-                            $jam_mulai = $_POST["jam_mulai"];
-                            $jam_selesai = $_POST["jam_selesai"];
-                        
-                            $sql = "INSERT INTO jadwal_periksa (id_dokter, hari, jam_mulai, jam_selesai) VALUES ('$id_dokter', '$hari', '$jam_mulai', '$jam_selesai')";
-                        
-                            if (mysqli_query($koneksi, $sql)) {
-                                echo "Jadwal periksa berhasil ditambahkan.";
-                                // Setelah berhasil menyimpan, kembali ke halaman daftar periksa
-                                header("Location: jadwal_periksa.php");
-                                exit();
-                            } else {
-                                echo "Error: " . $sql . "<br>" . mysqli_error($koneksi);
+                            $sql = "SELECT jadwal_periksa.id, dokter.nama, jadwal_periksa.hari, DATE_FORMAT(jadwal_periksa.jam_mulai, '%H:%i') AS jam_mulai, DATE_FORMAT(jadwal_periksa.jam_selesai, '%H:%i') AS jam_selesai
+                            FROM jadwal_periksa
+                            JOIN dokter ON jadwal_periksa.id_dokter = dokter.id";
+                            $result_jadwal = mysqli_query($koneksi, $sql);
+
+                        if ($result_jadwal && mysqli_num_rows($result_jadwal) > 0) {
+                            $no = 1;
+                            while ($row_jadwal = mysqli_fetch_assoc($result_jadwal)) {
+                                echo "<tr>";
+                                echo "<td>".$no."</td>";
+                                echo "<td>".$row_jadwal['nama']."</td>";
+                                echo "<td>".$row_jadwal['hari']."</td>";
+                                echo "<td>".$row_jadwal['jam_mulai']."</td>";
+                                echo "<td>".$row_jadwal['jam_selesai']."</td>";
+                                echo "<td>
+                                        <a href='edit.php?id=".$row_jadwal['id']."' class='btn btn-warning btn-sm'>Edit</a>
+                                        <a href='hapus.php?id=".$row_jadwal['id']."' class='btn btn-danger btn-sm'>Hapus</a>
+                                    </td>";
+                                echo "</tr>";
+                                $no++;
                             }
+                        } else {
+                            echo "<tr><td colspan='6'>Belum ada data jadwal periksa.</td></tr>";
                         }
                         ?>
                     </tbody>

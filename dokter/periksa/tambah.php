@@ -1,7 +1,28 @@
 <?php
 
 include_once("../../koneksi.php");
+// Proses penambahan jadwal periksa
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $id_dokter = $_POST["id_dokter"];
+    $hari = $_POST["hari"];
+    $jam_mulai = $_POST["jam_mulai"];
+    $jam_selesai = $_POST["jam_selesai"];
 
+    // Validasi jam mulai harus kurang dari jam selesai
+    if (strtotime($jam_mulai) >= strtotime($jam_selesai)) {
+        $error_message = "Jam Mulai harus lebih awal dari Jam Selesai.";
+    } else {
+        $sql = "INSERT INTO jadwal_periksa (id_dokter, hari, jam_mulai, jam_selesai) VALUES ('$id_dokter', '$hari', '$jam_mulai', '$jam_selesai')";
+
+        if (mysqli_query($koneksi, $sql)) {
+            $_SESSION['success_message'] = "Jadwal periksa berhasil ditambahkan.";
+            header("Location: jadwal_periksa.php");
+            exit();
+        } else {
+            $error_message = "Error: " . $sql . "<br>" . mysqli_error($koneksi);
+        }
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -125,7 +146,7 @@ include_once("../../koneksi.php");
       <div class="container-fluid">
         <div class="row mb-2">
           <div class="col-sm-6">
-            <h1 class="m-0">Dashboard</h1>
+            <h1 class="m-0">Tambah Jadwal Periksa</h1>
           </div><!-- /.col -->
           <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
@@ -138,78 +159,55 @@ include_once("../../koneksi.php");
 
     <!-- Main content -->
     <section class="content">
-    <div class="container-fluid">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">Jadwal Periksa Pasien</h3>
-            </div>
-            <div class="card-body">
-            <div class="card-body">
-            <a href="tambah.php" class="btn btn-primary mb-3">Tambah Jadwal Periksa</a>
+  <div class="container-fluid">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Tambah Jadwal Periksa Pasien</h3>
+      </div>
+      <div class="card-body">
+        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
+          <div class="form-group">
+            <label for="id_dokter">Dokter:</label>
+            <select name="id_dokter" class="form-control" required>
+              <?php
+              $query_dokter = "SELECT id, nama FROM dokter";
+              $result_dokter = mysqli_query($koneksi, $query_dokter);
 
-            <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
-    <label for="id_dokter">Dokter:</label>
-    <select name="id_dokter" required>
-        <?php
-        // Query untuk mendapatkan daftar ID Dokter dan Nama Dokter dari database
-        $query_dokter = "SELECT id, nama FROM dokter";
-        $result_dokter = mysqli_query($koneksi, $query_dokter);
-
-        if ($result_dokter) {
-            while ($row_dokter = mysqli_fetch_assoc($result_dokter)) {
-                echo "<option value='" . $row_dokter['id'] . "'>" . $row_dokter['nama'] . "</option>";
-            }
-        } else {
-            echo "<option value=''>Error fetching data</option>";
-        }
-        ?>
-    </select>
-    <br>
-
-    <label for="hari">Hari:</label>
-    <select name="hari" required>
-        <option value="Senin">Senin</option>
-        <option value="Selasa">Selasa</option>
-        <option value="Rabu">Rabu</option>
-        <option value="Kamis">Kamis</option>
-        <option value="Jumat">Jumat</option>
-    </select>
-    <br>
-
-    <label for="jam_mulai">Jam Mulai:</label>
-    <input type="time" name="jam_mulai" required>
-    <br>
-
-    <label for="jam_selesai">Jam Selesai:</label>
-    <input type="time" name="jam_selesai" required>
-    <br>
-
-    <button type="submit">Simpan</button>
-</form>
-                        <?php
-                        if ($_SERVER["REQUEST_METHOD"] == "POST") {
-                            $id_dokter = $_POST["id_dokter"];
-                            $hari = $_POST["hari"];
-                            $jam_mulai = $_POST["jam_mulai"];
-                            $jam_selesai = $_POST["jam_selesai"];
-                        
-                            $sql = "INSERT INTO jadwal_periksa (id_dokter, hari, jam_mulai, jam_selesai) VALUES ('$id_dokter', '$hari', '$jam_mulai', '$jam_selesai')";
-                        
-                            if (mysqli_query($koneksi, $sql)) {
-                                echo "Jadwal periksa berhasil ditambahkan.";
-                                // Setelah berhasil menyimpan, kembali ke halaman daftar periksa
-                                header("Location: jadwal_periksa.php");
-                                exit();
-                            } else {
-                                echo "Error: " . $sql . "<br>" . mysqli_error($koneksi);
-                            }
-                        }
-                        ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+              if ($result_dokter) {
+                while ($row_dokter = mysqli_fetch_assoc($result_dokter)) {
+                  echo "<option value='" . $row_dokter['id'] . "'>" . $row_dokter['nama'] . "</option>";
+                }
+              } else {
+                echo "<option value=''>Error fetching data</option>";
+              }
+              ?>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="hari">Hari:</label>
+            <select name="hari" class="form-control" required>
+              <option value="Senin">Senin</option>
+              <option value="Selasa">Selasa</option>
+              <option value="Rabu">Rabu</option>
+              <option value="Kamis">Kamis</option>
+              <option value="Jumat">Jumat</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="jam_mulai">Jam Mulai:</label>
+            <input type="time" name="jam_mulai" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="jam_selesai">Jam Selesai:</label>
+            <input type="time" name="jam_selesai" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <button type="submit" class="btn btn-primary">Simpan</button>
+          </div>
+        </form>
+      </div>
     </div>
+  </div>
 </section>
   <!-- /.content-wrapper -->
 

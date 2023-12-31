@@ -1,4 +1,14 @@
 <?php
+// Mulai sesi
+session_start();
+
+// Mengecek apakah sesi 'username' dan 'status' diatur
+if (!isset($_SESSION['username']) || $_SESSION['status'] !== "login") {
+    // Jika sesi tidak diatur atau status bukan "login", arahkan pengguna ke halaman login
+    $_SESSION["login_error"] = "Anda harus login terlebih dahulu.";
+    header("Location: login.php");
+    exit();
+}
 
 include_once("../../koneksi.php");
 
@@ -9,7 +19,7 @@ include_once("../../koneksi.php");
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Dokter | Dashboard</title>
+  <title>Admin | Dashboard</title>
 
   <!-- Google Font: Source Sans Pro -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
@@ -48,31 +58,8 @@ include_once("../../koneksi.php");
         <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
       </li>
       <li class="nav-item d-none d-sm-inline-block">
-        <a href="../dokter.php" class="nav-link">Home</a>
+        <a href="../admin.php" class="nav-link">Home</a>
       </li>
-    </ul>
-
-    <!-- Right navbar links -->
-    <ul class="navbar-nav ml-auto">
-      <!-- Navbar Search -->
-      <li class="nav-item">
-        <div class="navbar-search-block">
-          <form class="form-inline">
-            <div class="input-group input-group-sm">
-              <input class="form-control form-control-navbar" type="search" placeholder="Search" aria-label="Search">
-              <div class="input-group-append">
-                <button class="btn btn-navbar" type="submit">
-                  <i class="fas fa-search"></i>
-                </button>
-              </div>
-            </div>
-          </form>
-        </div>
-      </li>
-
-      <!-- Messages Dropdown Menu -->
-
-      <!-- Notifications Dropdown Menu -->
     </ul>
   </nav>
   <!-- /.navbar -->
@@ -84,7 +71,7 @@ include_once("../../koneksi.php");
       <!-- Sidebar user panel (optional) -->
       <div class="user-panel mt-3 pb-3 mb-3 d-flex">
         <div class="info">
-          <a href="#" class="d-block">Dokter</a>
+          <a href="#" class="d-block">Admin</a>
         </div>
       </div>
 
@@ -93,18 +80,31 @@ include_once("../../koneksi.php");
       <!-- Sidebar Menu -->
       <nav class="mt-2">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-          <!-- Add icons to the links using the .nav-icon class
-               with font-awesome or any other icon font library -->
-          <li class="nav-item menu-open">
-            <a href="jadwal_periksa.php" class="nav-link active">
-              <!--<i class="nav-icon fas fa-tachometer-alt"></i>-->
-              <p>
-                Jadwal Periksa
-              </p>
-            </a>
+              <li class="nav-item">
+                <a href="../obat/obat.php" class="nav-link active">
+                  <p>Obat</p>
+                </a>
+              </li>
+            </ul>
+          </li>
+      </nav>
+     
+    <!-- ... (menu-menu lainnya) ... -->
+    <nav class="mt-2">
+        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+              <li class="nav-item">
+                <a href="dokter.php" class="nav-link active">
+                  <p>Dokter</p>
+                </a>
+              </li>
+            </ul>
+          </li>
+      </nav> 
         <!-- Menu Logout -->
+        <nav class="mt-2">
+    <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
         <li class="nav-item">
-            <a href="../../admin/logout.php" class="nav-link">
+            <a href="../logout.php" class="nav-link">
                 <i class="nav-icon fas fa-sign-out-alt"></i>
                 <p>
                     Logout
@@ -119,98 +119,117 @@ include_once("../../koneksi.php");
   </aside>
 
   <!-- Content Wrapper. Contains page content -->
+  
   <div class="content-wrapper">
     <!-- Content Header (Page header) -->
+    <div class="content-header">
+    <div class="content-header">
+    <div class="content-header">
     <div class="content-header">
       <div class="container-fluid">
         <div class="row mb-2">
           <div class="col-sm-6">
-            <h1 class="m-0">Dashboard</h1>
+            <h1 class="m-0">Tambah/Edit Dokter</h1>
           </div><!-- /.col -->
-          <div class="col-sm-6">
-            <ol class="breadcrumb float-sm-right">
-            </ol>
-          </div><!-- /.col -->
+          <!-- /.col -->
         </div><!-- /.row -->
       </div><!-- /.container-fluid -->
     </div>
     <!-- /.content-header -->
 
     <!-- Main content -->
-    <section class="content">
-    <div class="container-fluid">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">Jadwal Periksa Pasien</h3>
-            </div>
-            <div class="card-body">
-            <div class="card-body">
-            <a href="tambah.php" class="btn btn-primary mb-3">Tambah Jadwal Periksa</a>
+    <form action="tambah_dokter.php" method="post">
+    <div class="form-group">
+        <label for="nama">Nama Dokter</label>
+        <input type="text" class="form-control" id="nama" name="nama" required>
+    </div>
+    <div class="form-group">
+        <label for="alamat">Alamat</label>
+        <input type="text" class="form-control" id="alamat" name="alamat" required>
+    </div>
+    <div class="form-group">
+        <label for="no_hp">Nomor HP</label>
+        <input type="text" class="form-control" id="no_hp" name="no_hp" required>
+    </div>
+    <div class="form-group">
+        <label for="id_poli">Poli</label>
+        <select class="form-control" id="id_poli" name="id_poli" required>
+            <?php
+            // Query untuk mendapatkan daftar ID Poli dari database
+            $query_poli = "SELECT id, nama_poli FROM poli";
+            $result_poli = mysqli_query($koneksi, $query_poli);
 
-            <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
-    <label for="id_dokter">Dokter:</label>
-    <select name="id_dokter" required>
-        <?php
-        // Query untuk mendapatkan daftar ID Dokter dan Nama Dokter dari database
-        $query_dokter = "SELECT id, nama FROM dokter";
-        $result_dokter = mysqli_query($koneksi, $query_dokter);
+            if ($result_poli) {
+                while ($row_poli = mysqli_fetch_assoc($result_poli)) {
+                    echo "<option value='" . $row_poli['id'] . "'>" . $row_poli['nama_poli'] . "</option>";
+                }
+            } else {
+                echo "<option value=''>Error fetching data</option>";
+            }
+            ?>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="nip">NIP</label>
+        <input type="text" class="form-control" id="nip" name="nim" required>
+    </div>
+    <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" class="form-control" id="password" name="password" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Simpan</button>
+</form>
+<div class="content-header">
+    <!-- Tabel untuk menampilkan daftar obat -->
+    <div class="card">
+  <div class="card-header">
+    <h3 class="card-title">Dokter</h3>
+  </div>
+    <table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>No</th>
+            <th>Nama Dokter</th>
+            <th>Alamat</th>
+            <th>Nomor HP</th>
+            <th>Poli</th>
+            <th>NIP</th>
+            <th>Aksi</th>
+        </tr>
+    </thead>
+    <tbody>
+    <?php
+        require '../../koneksi.php';
 
-        if ($result_dokter) {
-            while ($row_dokter = mysqli_fetch_assoc($result_dokter)) {
-                echo "<option value='" . $row_dokter['id'] . "'>" . $row_dokter['nama'] . "</option>";
+        $sql = "SELECT dokter.*, poli.nama_poli 
+                FROM dokter
+                JOIN poli ON dokter.id_poli = poli.id";
+        $result = mysqli_query($koneksi, $sql);
+
+        if ($result && mysqli_num_rows($result) > 0) {
+            $no = 1;
+            while ($row = mysqli_fetch_assoc($result)) {
+                echo "<tr>";
+                echo "<td>".$no."</td>";
+                echo "<td>".$row['nama']."</td>";
+                echo "<td>".$row['alamat']."</td>";
+                echo "<td>".$row['no_hp']."</td>";
+                echo "<td>".$row['nama_poli']."</td>"; // Menampilkan nama poli
+                echo "<td>".$row['nip']."</td>";
+                echo "<td>";
+                echo "<a href='edit_dokter.php?id=".$row['id']."' class='btn btn-warning btn-sm'>Edit</a>";
+                echo "<a href='hapus_dokter.php?id=".$row['id']."' class='btn btn-danger btn-sm' onclick='return confirm(\"Apakah Anda yakin ingin menghapus dokter ini?\")'>Hapus</a>";
+                echo "</td>";
+                echo "</tr>";
+                $no++;
             }
         } else {
-            echo "<option value=''>Error fetching data</option>";
+            echo "<tr><td colspan='7'>Belum ada data dokter.</td></tr>";
         }
         ?>
-    </select>
-    <br>
-
-    <label for="hari">Hari:</label>
-    <select name="hari" required>
-        <option value="Senin">Senin</option>
-        <option value="Selasa">Selasa</option>
-        <option value="Rabu">Rabu</option>
-        <option value="Kamis">Kamis</option>
-        <option value="Jumat">Jumat</option>
-    </select>
-    <br>
-
-    <label for="jam_mulai">Jam Mulai:</label>
-    <input type="time" name="jam_mulai" required>
-    <br>
-
-    <label for="jam_selesai">Jam Selesai:</label>
-    <input type="time" name="jam_selesai" required>
-    <br>
-
-    <button type="submit">Simpan</button>
-</form>
-                        <?php
-                        if ($_SERVER["REQUEST_METHOD"] == "POST") {
-                            $id_dokter = $_POST["id_dokter"];
-                            $hari = $_POST["hari"];
-                            $jam_mulai = $_POST["jam_mulai"];
-                            $jam_selesai = $_POST["jam_selesai"];
-                        
-                            $sql = "INSERT INTO jadwal_periksa (id_dokter, hari, jam_mulai, jam_selesai) VALUES ('$id_dokter', '$hari', '$jam_mulai', '$jam_selesai')";
-                        
-                            if (mysqli_query($koneksi, $sql)) {
-                                echo "Jadwal periksa berhasil ditambahkan.";
-                                // Setelah berhasil menyimpan, kembali ke halaman daftar periksa
-                                header("Location: jadwal_periksa.php");
-                                exit();
-                            } else {
-                                echo "Error: " . $sql . "<br>" . mysqli_error($koneksi);
-                            }
-                        }
-                        ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</section>
+    </tbody>
+</table>
+ </div>
   <!-- /.content-wrapper -->
 
   <!-- Control Sidebar -->
