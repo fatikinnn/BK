@@ -1,7 +1,22 @@
 <?php
-
 include_once("../../koneksi.php");
 
+// Query untuk mengambil data
+$query = "SELECT 
+            daftar_poli.no_antrian,
+            pasien.id AS id_pasien,
+            pasien.nama AS nama_pasien,
+            daftar_poli.keluhan
+          FROM pasien
+          INNER JOIN daftar_poli ON pasien.id = daftar_poli.id_pasien
+          LEFT JOIN periksa ON daftar_poli.id = periksa.id_daftar_poli";
+
+$result = $koneksi->query($query);
+
+// Periksa apakah query berhasil dijalankan
+if ($result === false) {
+    die("Error: " . $koneksi->error);
+}
 ?>
 
 <!DOCTYPE html>
@@ -9,7 +24,7 @@ include_once("../../koneksi.php");
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Admin | Dashboard</title>
+  <title>Dokter | Dashboard</title>
 
   <!-- Google Font: Source Sans Pro -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
@@ -36,6 +51,11 @@ include_once("../../koneksi.php");
 <body class="hold-transition sidebar-mini layout-fixed">
 <div class="wrapper">
 
+        <?php
+        // Periksa apakah ada data yang ditemukan
+        if ($result->num_rows > 0) {
+        ?>
+
   <!-- Preloader -->
   <div class="preloader flex-column justify-content-center align-items-center">
   </div>
@@ -48,8 +68,31 @@ include_once("../../koneksi.php");
         <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
       </li>
       <li class="nav-item d-none d-sm-inline-block">
-        <a href="../admin.php" class="nav-link">Home</a>
+        <a href="../dokter.php" class="nav-link">Home</a>
       </li>
+    </ul>
+
+    <!-- Right navbar links -->
+    <ul class="navbar-nav ml-auto">
+      <!-- Navbar Search -->
+      <li class="nav-item">
+        <div class="navbar-search-block">
+          <form class="form-inline">
+            <div class="input-group input-group-sm">
+              <input class="form-control form-control-navbar" type="search" placeholder="Search" aria-label="Search">
+              <div class="input-group-append">
+                <button class="btn btn-navbar" type="submit">
+                  <i class="fas fa-search"></i>
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </li>
+
+      <!-- Messages Dropdown Menu -->
+
+      <!-- Notifications Dropdown Menu -->
     </ul>
   </nav>
   <!-- /.navbar -->
@@ -61,7 +104,7 @@ include_once("../../koneksi.php");
       <!-- Sidebar user panel (optional) -->
       <div class="user-panel mt-3 pb-3 mb-3 d-flex">
         <div class="info">
-          <a href="#" class="d-block">Admin</a>
+          <a href="#" class="d-block">Dokter</a>
         </div>
       </div>
 
@@ -70,52 +113,25 @@ include_once("../../koneksi.php");
       <!-- Sidebar Menu -->
       <nav class="mt-2">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-              <li class="nav-item">
-                <a href="obat.php" class="nav-link active">
-                  <p>Obat</p>
-                </a>
-              </li>
-            </ul>
-          </li>
-      </nav>
-     
-    <!-- ... (menu-menu lainnya) ... -->
-    <nav class="mt-2">
-        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-              <li class="nav-item">
-                <a href="../dokter/dokter.php" class="nav-link active">
-                  <p>Dokter</p>
-                </a>
-              </li>
-            </ul>
-          </li>
-      </nav>
-      <nav class="mt-2">
-        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-              <li class="nav-item">
-                <a href="../poli/poli.php" class="nav-link active">
-                  <p>Poli</p>
-                </a>
-              </li>
-            </ul>
-          </li>
-      </nav> 
-      <nav class="mt-2">
-        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-              <li class="nav-item">
-                <a href="../pasien/pasien.php" class="nav-link active">
-                  <p>Pasien</p>
-                </a>
-              </li>
-            </ul>
-          </li>
-      </nav>
-
+          <!-- Add icons to the links using the .nav-icon class
+               with font-awesome or any other icon font library -->
+          <li class="nav-item menu-open">
+            <a href="../periksa/jadwal_periksa.php" class="nav-link active">
+              <!--<i class="nav-icon fas fa-tachometer-alt"></i>-->
+              <p>
+                Jadwal Periksa
+              </p>
+            </a>
+            <li class="nav-item menu-open">
+            <a href="m_pasien.php" class="nav-link active">
+              <!--<i class="nav-icon fas fa-tachometer-alt"></i>-->
+              <p>
+                Memeriksa Pasien
+              </p>
+            </a>
         <!-- Menu Logout -->
-        <nav class="mt-2">
-    <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
         <li class="nav-item">
-            <a href="../logout.php" class="nav-link">
+            <a href="../../admin/logout.php" class="nav-link">
                 <i class="nav-icon fas fa-sign-out-alt"></i>
                 <p>
                     Logout
@@ -130,91 +146,69 @@ include_once("../../koneksi.php");
   </aside>
 
   <!-- Content Wrapper. Contains page content -->
-  
   <div class="content-wrapper">
     <!-- Content Header (Page header) -->
     <div class="content-header">
       <div class="container-fluid">
         <div class="row mb-2">
           <div class="col-sm-6">
-            <h1 class="m-0">Tambah/Edit Obat</h1>
+            <h1 class="m-0">Jadwal Periksa</h1>
           </div><!-- /.col -->
-          <!-- /.col -->
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+            </ol>
+          </div><!-- /.col -->
         </div><!-- /.row -->
       </div><!-- /.container-fluid -->
     </div>
     <!-- /.content-header -->
 
     <!-- Main content -->
-    <section>
+    <section class="content">
     <div class="container-fluid">
-    <div calss = "row">
         <div class="card">
             <div class="card-header">
-    <div class="content-header">
-    <form action="tambah_obat.php" method="post">
-        <div class="form-group">
-            <label for="nama_obat">Nama Obat</label>
-            <input type="text" class="form-control" id="nama_obat" name="nama_obat" required>
+                <h3 class="card-title">Periksa Pasien</h3>
+            </div>
+            <div class="card-body">
+            <a href="tambah.php" class="btn btn-primary mb-3">Periksa Pasien</a>
+
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>No Antrian</th>
+                                <th>Nama Pasien</th>
+                                <th>Keluhan</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php
+                            while ($row = $result->fetch_assoc()) {
+                            ?>
+                            <tr>
+                                <td><?php echo $row["no_antrian"]; ?></td>
+                                <td><?php echo $row["nama_pasien"]; ?></td>
+                                <td><?php echo $row["keluhan"]; ?></td>
+                                <td>
+                                    <a href='memeriksa.php?id_pasien=<?php echo $row["id_pasien"]; ?>' class= "btn btn-primary " style="text-center" >Memeriksa</a>
+                                </td>
+                            </tr>
+                            <?php
+                            }
+                            ?>
+                        </tbody>
+                    </table>
+            </div>
         </div>
-        <div class="form-group">
-            <label for="kemasan">Kemasan</label>
-            <input type="text" class="form-control" id="kemasan" name="kemasan" required>
-        </div>
-        <div class="form-group">
-            <label for="harga">Harga</label>
-            <input type="number" class="form-control" id="harga" name="harga" required>
-        </div>
-        <button type="submit" class="btn btn-primary">Simpan</button>
-    </form>
+    </div>
 </section>
-    <!-- Tabel untuk menampilkan daftar obat -->
-    <div class="container-fluid">
-    <div calss = "row">
-        <div class="card">
-            <div class="card-header">
-    <div class="content-header">
-    <h3 class="card-title">Obat</h3>
-  </div>
-    <table class="table table-bordered">
-      <thead>
-        <tr>
-          <th>No</th>
-          <th>Nama Obat</th>
-          <th>Kemasan</th>
-          <th>Harga</th>
-          <th>Aksi</th>
-        </tr>
-      </thead>
-      <tbody>
-        <?php
-          require '../../koneksi.php';
+<?php
+        }else{
+          echo "<div class='container-fluid'><p>Tidak ada data ditemukan.</p></div>";
 
-          $sql = "SELECT * FROM obat";
-          $result = mysqli_query($koneksi, $sql);
-
-          if (mysqli_num_rows($result) > 0) {
-            $no = 1;
-            while ($row = mysqli_fetch_assoc($result)) {
-              echo "<tr>";
-              echo "<td>".$no."</td>";
-              echo "<td>".$row['nama_obat']."</td>";
-              echo "<td>".$row['kemasan']."</td>";
-              echo "<td>Rp ".number_format($row['harga'], 0, ',', '.')."</td>";
-              echo "<td>";
-              echo "<a href='edit_obat.php?id=".$row['id']."' class='btn btn-warning btn-sm'>Edit</a>";
-              echo "<a href='hapus_obat.php?id=".$row['id']."' class='btn btn-danger btn-sm' onclick='return confirm(\"Apakah Anda yakin ingin menghapus obat ini?\")'>Hapus</a>";
-              echo "</td>";
-              echo "</tr>";
-              $no++;
-            }
-          } else {
-            echo "<tr><td colspan='5'>Belum ada data obat.</td></tr>";
-          }
+        }
         ?>
-      </tbody>
-    </table>
- </div>
   <!-- /.content-wrapper -->
 
   <!-- Control Sidebar -->
@@ -258,5 +252,10 @@ include_once("../../koneksi.php");
 <script src="../../dist/js/adminlte.js"></script>
 <!-- AdminLTE dashboard demo (This is only for demo purposes) -->
 <script src="../../dist/js/pages/dashboard.js"></script>
+<script>
+function confirmDelete() {
+    return confirm("Apakah Anda yakin ingin menghapus jadwal periksa ini?");
+}
+</script>
 </body>
 </html>

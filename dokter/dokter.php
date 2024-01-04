@@ -102,6 +102,13 @@ include_once("../koneksi.php");
                 Jadwal Periksa
               </p>
             </a>
+            <li class="nav-item menu-open">
+            <a href="m_pasien/m_pasien.php" class="nav-link active">
+              <!--<i class="nav-icon fas fa-tachometer-alt"></i>-->
+              <p>
+                Memeriksa Pasien
+              </p>
+            </a>
         <!-- Menu Logout -->
         <li class="nav-item">
             <a href="../admin/logout.php" class="nav-link">

@@ -2,6 +2,24 @@
 
 include_once("../../koneksi.php");
 
+// Proses penambahan poli
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $nama_poli = $_POST['nama_poli'];
+    $keterangan = $_POST['keterangan'];
+
+    $query = "INSERT INTO poli (nama_poli, keterangan) VALUES ('$nama_poli', '$keterangan')";
+
+    if (mysqli_query($koneksi, $query)) {
+        echo "";
+    } else {
+        echo "Error: " . $query . "<br>" . mysqli_error($koneksi);
+    }
+}
+
+// Query untuk menampilkan daftar poli
+$query_daftar_poli = "SELECT * FROM poli";
+$result_daftar_poli = mysqli_query($koneksi, $query_daftar_poli);
+
 ?>
 
 <!DOCTYPE html>
@@ -83,7 +101,7 @@ include_once("../../koneksi.php");
     <nav class="mt-2">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
               <li class="nav-item">
-                <a href="dokter.php" class="nav-link active">
+                <a href="../dokter/dokter.php" class="nav-link active">
                   <p>Dokter</p>
                 </a>
               </li>
@@ -93,7 +111,7 @@ include_once("../../koneksi.php");
       <nav class="mt-2">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
               <li class="nav-item">
-                <a href="../poli/poli.php" class="nav-link active">
+                <a href="poli.php" class="nav-link active">
                   <p>Poli</p>
                 </a>
               </li>
@@ -133,12 +151,12 @@ include_once("../../koneksi.php");
   
   <div class="content-wrapper">
     <!-- Content Header (Page header) -->
-    <div class="content-header">
+    <section>
     <div class="content-header">
       <div class="container-fluid">
         <div class="row mb-2">
           <div class="col-sm-6">
-            <h1 class="m-0">Tambah/Edit Dokter</h1>
+            <h1 class="m-0">Tambah/Edit Poli</h1>
           </div><!-- /.col -->
           <!-- /.col -->
         </div><!-- /.row -->
@@ -147,104 +165,65 @@ include_once("../../koneksi.php");
     <!-- /.content-header -->
 
     <!-- Main content -->
-    <section>
     <div class="container-fluid">
     <div calss = "row">
         <div class="card">
             <div class="card-header">
     <div class="content-header">
-    <form action="tambah_dokter.php" method="post">
-    <div class="form-group">
-        <label for="nama">Nama Dokter</label>
-        <input type="text" class="form-control" id="nama" name="nama" required>
-    </div>
-    <div class="form-group">
-        <label for="alamat">Alamat</label>
-        <input type="text" class="form-control" id="alamat" name="alamat" required>
-    </div>
-    <div class="form-group">
-        <label for="no_hp">Nomor HP</label>
-        <input type="text" class="form-control" id="no_hp" name="no_hp" required>
-    </div>
-    <div class="form-group">
-        <label for="id_poli">Poli</label>
-        <select class="form-control" id="id_poli" name="id_poli" required>
-            <!-- Opsi default "Pilih" -->
-            <option value="" disabled selected>Pilih Poli</option>
+    <form method="POST" action="">
+                <div class="form-group">
+                    <label for="nama_poli">Nama Poli</label>
+                    <input type="text" class="form-control" id="nama_poli" name="nama_poli" required>
+                </div>
 
-            <?php
-            // Query untuk mendapatkan daftar ID Poli dari database
-            $query_poli = "SELECT id, nama_poli FROM poli";
-            $result_poli = mysqli_query($koneksi, $query_poli);
+                <div class="form-group">
+                    <label for="keterangan">Keterangan</label>
+                    <input type="text" class="form-control" id="keterangan" name="keterangan" required>
+                </div>
 
-            if ($result_poli) {
-                while ($row_poli = mysqli_fetch_assoc($result_poli)) {
-                    echo "<option value='" . $row_poli['id'] . "'>" . $row_poli['nama_poli'] . "</option>";
-                }
-            } else {
-                echo "<option value=''>Error fetching data</option>";
-            }
-            ?>
-        </select>
-    </div>
-    <div class="form-group">
-        <label for="nip">NIP</label>
-        <input type="text" class="form-control" id="nip" name="nip" required>
-    </div>
-    <div class="form-group">
-        <label for="password">Password</label>
-        <input type="password" class="form-control" id="password" name="password" required>
-    </div>
-    <button type="submit" class="btn btn-primary">Simpan</button>
-</form>
-</form>
-          </section>
-    <!-- Tabel untuk menampilkan daftar obat -->
+                    <button type="submit" class="btn btn-primary">Simpan</button>
+                </form>
+</div>
+</section>
+
+                        <!-- Tabel untuk menampilkan daftar obat -->
+                        <section>
     <div class="container-fluid">
     <div calss = "row">
         <div class="card">
             <div class="card-header">
     <div class="content-header">
-    <h3 class="card-title">Dokter</h3>
-    <table class="table table-bordered">
-        <tr>
-            <th>No</th>
-            <th>Nama Dokter</th>
-            <th>Alamat</th>
-            <th>Nomor HP</th>
-            <th>Poli</th>
-            <th>NIP</th>
-            <th>Aksi</th>
-        </tr>
-    <?php
-        require '../../koneksi.php';
-
-        $sql = "SELECT dokter.*, poli.nama_poli 
-                FROM dokter
-                JOIN poli ON dokter.id_poli = poli.id";
-        $result = mysqli_query($koneksi, $sql);
-
-        if ($result && mysqli_num_rows($result) > 0) {
-            $no = 1;
-            while ($row = mysqli_fetch_assoc($result)) {
-                echo "<tr>";
-                echo "<td>".$no."</td>";
-                echo "<td>".$row['nama']."</td>";
-                echo "<td>".$row['alamat']."</td>";
-                echo "<td>".$row['no_hp']."</td>";
-                echo "<td>".$row['nama_poli']."</td>"; // Menampilkan nama poli
-                echo "<td>".$row['nip']."</td>";
-                echo "<td class>";
-                echo "<a href='edit_dokter.php?id=". $row['id'] . "' class='btn btn-warning btn-sm'>Edit</a>";
-                echo "<a href='hapus_dokter.php?id=". $row['id'] . "' class='btn btn-danger btn-sm' onclick='return confirm(\"Apakah Anda yakin ingin menghapus dokter ini?\")'>Hapus</a>";
-                echo "</td>";
-                echo "</tr>";
-                $no++;
-            }
-        } 
-        ?>
-</table>
- </div>
+                        <h3 class="card-title">Poli</h3>
+                    </div>
+                    <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th scope="col">No</th>
+                            <th scope="col">Nama Poli</th>
+                            <th scope="col">Keterangan</th>
+                            <th scope="col">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        $no = 1;
+                        while ($row = mysqli_fetch_assoc($result_daftar_poli)) {
+                            echo "<tr>";
+                            echo "<td>" . $no . "</td>"; // Menggunakan $no sebagai nomor urut
+                            echo "<td>" . $row['nama_poli'] . "</td>";
+                            echo "<td>" . $row['keterangan'] . "</td>";
+                            echo "<td>
+                                    <a href='edit_poli.php?id=" . $row['id'] . "' class='btn btn-warning btn-sm'>Edit</a>
+                                    <a href='hapus_poli.php?id=" . $row['id'] . "' class='btn btn-danger btn-sm' onclick='return confirm(\"Apakah Anda yakin ingin menghapus poli ini?\")'>Hapus</a>
+                                  </td>";
+                            echo "</tr>";
+                            $no++;
+                        }
+                        ?>
+                    </tbody>
+                </table>
+            </div>
+                    </section>
   <!-- /.content-wrapper -->
 
   <!-- Control Sidebar -->

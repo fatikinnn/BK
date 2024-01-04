@@ -1,66 +1,95 @@
 <?php
-if (!isset($_SESSION)) {
-    session_start();
-}
+include '../../koneksi.php';
 
+// Proses penambahan poli
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $username = $_POST['username'];
-    $password = $_POST['password'];
+    $nama_poli = $_POST['nama_poli'];
+    $keterangan = $_POST['keterangan'];
 
-    $query = "SELECT * FROM user WHERE username = '$username'";
-    $result = $mysqli->query($query);
+    $query = "INSERT INTO poli (nama_poli, keterangan) VALUES ('$nama_poli', '$keterangan')";
 
-    if (!$result) {
-        die("Query error: " . $mysqli->error);
-    }
-
-    if ($result->num_rows == 1) {
-        $row = $result->fetch_assoc();
-        if (password_verify($password, $row['password'])) {
-            $_SESSION['username'] = $username;
-            header("Location: index.php");
-        } else {
-            $error = "Password salah";
-        }
+    if (mysqli_query($koneksi, $query)) {
+        echo "";
     } else {
-        $error = "User tidak ditemukan";
+        echo "Error: " . $query . "<br>" . mysqli_error($koneksi);
     }
 }
+
+// Query untuk menampilkan daftar poli
+$query_daftar_poli = "SELECT * FROM poli";
+$result_daftar_poli = mysqli_query($koneksi, $query_daftar_poli);
+
 ?>
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header text-center" style="font-weight: bold; font-size: 32px;">Login</div>
-                <div class="card-body">
-                    <form method="POST" action="index.php?page=loginUser">
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daftar Poli</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <h2 class="text-center mb-4">Daftar Poli</h2>
+
+                <!-- Form untuk menambahkan poli -->
+                <form method="POST" action="">
+                <div class="form-group">
+                    <label for="nama_poli">Nama Poli:</label>
+                    <input type="text" class="form-control" id="nama_poli" name="nama_poli" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="keterangan">Keterangan:</label>
+                    <input type="text" class="form-control" id="keterangan" name="keterangan" required>
+                </div>
+
+                    <button type="submit" class="btn btn-primary">Tambah Poli</button>
+                </form>
+
+                <hr>
+                <!-- Tabel untuk menampilkan daftar poli -->
+                <h3 class="text-center mb-4">Daftar Poli</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">No</th>
+                            <th scope="col">Nama Poli</th>
+                            <th scope="col">Keterangan</th>
+                            <th scope="col">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
                         <?php
-                        if (isset($error)) {
-                            echo '<div class="alert alert-danger">' . $error . '
-                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                        <span aria-hidden="true">&times;</span>
-                                    </button>
-                                    </div>';
+                        $no = 1;
+                        while ($row = mysqli_fetch_assoc($result_daftar_poli)) {
+                            echo "<tr>";
+                            echo "<td>" . $no . "</td>"; // Menggunakan $no sebagai nomor urut
+                            echo "<td>" . $row['nama_poli'] . "</td>";
+                            echo "<td>" . $row['keterangan'] . "</td>";
+                            echo "<td>
+                                    <a href='edit_poli.php?id=" . $row['id'] . "' class='btn btn-warning btn-sm'>Edit</a>
+                                    <a href='hapus_poli.php?id=" . $row['id'] . "' class='btn btn-danger btn-sm' onclick='return confirm(\"Apakah Anda yakin ingin menghapus poli ini?\")'>Hapus</a>
+                                  </td>";
+                            echo "</tr>";
+                            $no++;
                         }
                         ?>
-                        <div class="form-group">
-                            <label for="username">Username</label>
-                            <input type="text" name="username" class="form-control" required placeholder="Masukkan nama anda">
-                        </div>
-                        <div class="form-group">
-                            <label for="password">Password</label>
-                            <input type="password" name="password" class="form-control" required placeholder="Masukkan password anda">
-                        </div>
-                        <div class="text-center">
-                            <button type="submit" class="btn btn-primary btn-block">Login</button>
-                        </div>
-                    </form>
-                    <div class="text-center">
-                        <p class="mt-3">Belum punya akun? <a href="index.php?page=registerUser">Register</a></p>
-                    </div>
-                </div>
+                    </tbody>
+                </table>
+                
             </div>
         </div>
     </div>
-</div>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</body>
+
+</html>

@@ -1,7 +1,84 @@
 <?php
+session_start();
 
-include_once("../../koneksi.php");
+include '../koneksi.php';
 
+if (!isset($_SESSION['no_rm'])) {
+    header("Location: login.php");
+    exit();
+}
+
+$noRM = $_SESSION['no_rm'];
+
+// Query untuk mendapatkan data pasien
+$sqlPasien = "SELECT * FROM pasien WHERE no_rm = '$noRM'";
+$resultPasien = mysqli_query($koneksi, $sqlPasien);
+
+if ($resultPasien) {
+    $rowPasien = mysqli_fetch_assoc($resultPasien);
+    $namaPasien = $rowPasien['nama'];
+    $nomorRekamMedis = $rowPasien['no_rm'];
+    // Dapatkan ID Pasien
+    $idPasien = $rowPasien['id'];
+    // Tambahan informasi pasien lainnya
+} else {
+    echo "Gagal mengambil informasi pasien: " . mysqli_error($koneksi);
+}
+
+// Menangani pemilihan poli
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    if (isset($_POST['id_poli'])) {
+        $idPoliTerpilih = $_POST['id_poli'];
+
+        // Query untuk mendapatkan data poli terpilih
+        $sqlPoliTerpilih = "SELECT * FROM poli WHERE id = $idPoliTerpilih";
+        $resultPoliTerpilih = mysqli_query($koneksi, $sqlPoliTerpilih);
+
+        if ($resultPoliTerpilih) {
+            $rowPoliTerpilih = mysqli_fetch_assoc($resultPoliTerpilih);
+            $namaPoliTerpilih = $rowPoliTerpilih['nama_poli'];
+
+            // Query untuk mendapatkan jadwal dan dokter berdasarkan poli terpilih
+            $sqlJadwalDokter = "SELECT jadwal.*, dokter.nama AS nama_dokter 
+                                FROM jadwal_periksa jadwal
+                                JOIN dokter ON jadwal.id_dokter = dokter.id
+                                WHERE dokter.id_poli = $idPoliTerpilih";
+
+            $resultJadwalDokter = mysqli_query($koneksi, $sqlJadwalDokter);
+
+            if (!$resultJadwalDokter) {
+                echo "Gagal mengambil jadwal dan dokter: " . mysqli_error($koneksi);
+            }
+        } else {
+            echo "Gagal mengambil data poli terpilih: " . mysqli_error($koneksi);
+        }
+    }
+}
+
+// Query untuk mendapatkan data poli
+$sqlPoli = "SELECT * FROM poli";
+$resultPoli = mysqli_query($koneksi, $sqlPoli);
+
+if (!$resultPoli) {
+    echo "Gagal mengambil data poli: " . mysqli_error($koneksi);
+}
+
+// Query untuk mendapatkan riwayat daftar poli pasien
+$sqlRiwayatDaftarPoli = "SELECT daftar_poli.*, poli.nama_poli, dokter.nama AS nama_dokter, jadwal.hari, jadwal.jam_mulai, jadwal.jam_selesai
+                        FROM daftar_poli
+                        JOIN jadwal_periksa jadwal ON daftar_poli.id_jadwal = jadwal.id
+                        JOIN dokter ON jadwal.id_dokter = dokter.id
+                        JOIN poli ON dokter.id_poli = poli.id
+                        WHERE daftar_poli.id_pasien = '$idPasien'";
+
+$resultRiwayatDaftarPoli = mysqli_query($koneksi, $sqlRiwayatDaftarPoli);
+
+if (!$resultRiwayatDaftarPoli) {
+    echo "Gagal mengambil riwayat daftar poli: " . mysqli_error($koneksi);
+}
+
+// Close the database connection
+mysqli_close($koneksi);
 ?>
 
 <!DOCTYPE html>
@@ -9,7 +86,7 @@ include_once("../../koneksi.php");
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Dokter | Dashboard</title>
+  <title>Pasien | Dashboard</title>
 
   <!-- Google Font: Source Sans Pro -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
@@ -84,7 +161,7 @@ include_once("../../koneksi.php");
       <!-- Sidebar user panel (optional) -->
       <div class="user-panel mt-3 pb-3 mb-3 d-flex">
         <div class="info">
-          <a href="#" class="d-block">Dokter</a>
+          <a href="#" class="d-block">Pasien</a>
         </div>
       </div>
 
@@ -99,14 +176,7 @@ include_once("../../koneksi.php");
             <a href="jadwal_periksa.php" class="nav-link active">
               <!--<i class="nav-icon fas fa-tachometer-alt"></i>-->
               <p>
-                Jadwal Periksa
-              </p>
-            </a>
-            <li class="nav-item menu-open">
-            <a href="../m_pasien/m_pasien.php" class="nav-link active">
-              <!--<i class="nav-icon fas fa-tachometer-alt"></i>-->
-              <p>
-                Memeriksa Pasien
+                Daftar Poli
               </p>
             </a>
         <!-- Menu Logout -->
@@ -132,7 +202,7 @@ include_once("../../koneksi.php");
       <div class="container-fluid">
         <div class="row mb-2">
           <div class="col-sm-6">
-            <h1 class="m-0">Jadwal Periksa</h1>
+            <h1 class="m-0">Dashboard</h1>
           </div><!-- /.col -->
           <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
@@ -151,52 +221,44 @@ include_once("../../koneksi.php");
                 <h3 class="card-title">Jadwal Periksa Pasien</h3>
             </div>
             <div class="card-body">
-            <a href="tambah.php" class="btn btn-primary mb-3">Tambah Jadwal Periksa</a>
+            <div class="card-body">
+            <h1>Selamat datang, <?php echo $namaPasien; ?>!</h1>
+    <p>Nomor Rekam Medis Anda: <?php echo $nomorRekamMedis; ?></p>
 
-            <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>No</th>
-                            <th>Nama Dokter</th>
-                            <th>Hari</th>
-                            <th>Jam Mulai</th>
-                            <th>Jam Selesai</th>
-                            <th>Aksi</th> <!-- Tambah baris ini -->
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php
-                            $sql = "SELECT jadwal_periksa.id, dokter.nama, jadwal_periksa.hari, DATE_FORMAT(jadwal_periksa.jam_mulai, '%H:%i') AS jam_mulai, DATE_FORMAT(jadwal_periksa.jam_selesai, '%H:%i') AS jam_selesai
-                            FROM jadwal_periksa
-                            JOIN dokter ON jadwal_periksa.id_dokter = dokter.id";
-                            $result_jadwal = mysqli_query($koneksi, $sql);
+    <h2>Pilih Poli untuk Melihat Jadwal Dokter:</h2>
+    <form action="pasien.php" method="post">
+        <select name="id_poli">
+            <?php while ($rowPoli = mysqli_fetch_assoc($resultPoli)) : ?>
+                <option value="<?php echo $rowPoli['id']; ?>"><?php echo $rowPoli['nama_poli']; ?></option>
+            <?php endwhile; ?>
+        </select>
+        <input type="submit" value="Tampilkan Jadwal Dokter">
+    </form>
 
-                        if ($result_jadwal && mysqli_num_rows($result_jadwal) > 0) {
-                            $no = 1;
-                            while ($row_jadwal = mysqli_fetch_assoc($result_jadwal)) {
-                                echo "<tr>";
-                                echo "<td>".$no."</td>";
-                                echo "<td>".$row_jadwal['nama']."</td>";
-                                echo "<td>".$row_jadwal['hari']."</td>";
-                                echo "<td>".$row_jadwal['jam_mulai']."</td>";
-                                echo "<td>".$row_jadwal['jam_selesai']."</td>";
-                                echo "<td>
-                                        <a href='edit.php?id=".$row_jadwal['id']."' class='btn btn-warning btn-sm'>Edit</a>
-                                        <a href='hapus.php?id=".$row_jadwal['id']."' class='btn btn-danger btn-sm'>Hapus</a>
-                                    </td>";
-                                echo "</tr>";
-                                $no++;
+    <?php if (isset($namaPoliTerpilih)) : ?>
+    <h2>Jadwal Dokter di <?php echo $namaPoliTerpilih; ?>:</h2>
+    <form action="daftar_poli.php" method="post">
+        <input type="hidden" name="id_poli" value="<?php echo $idPoliTerpilih; ?>">
 
-                            }
-                        } else {
-                            echo "<tr><td colspan='6'>Belum ada data jadwal periksa.</td></tr>";
-                        }
-                        ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+        <label for="id_jadwal">Pilih Jadwal dan Dokter:</label>
+        <select name="id_jadwal" id="id_jadwal">
+            <?php while ($rowJadwalDokter = mysqli_fetch_assoc($resultJadwalDokter)) : ?>
+                <option value="<?php echo $rowJadwalDokter['id']; ?>">
+                    <?php echo $rowJadwalDokter['hari'] . ', ' . ltrim($rowJadwalDokter['jam_mulai'], '0') . ' - ' . ltrim($rowJadwalDokter['jam_selesai'], '0') . ' oleh Dr. ' . $rowJadwalDokter['nama_dokter']; ?>
+                </option>
+            <?php endwhile; ?>
+        </select>
+
+        <br>
+
+        <label for="keluhan">Keluhan:</label>
+        <textarea name="keluhan" id="keluhan" rows="4" cols="50"></textarea>
+
+        <br>
+
+        <input type="submit" value="Daftar ke Poli">
+    </form>
+<?php endif; ?>
 </section>
   <!-- /.content-wrapper -->
 

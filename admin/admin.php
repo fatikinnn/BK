@@ -109,6 +109,28 @@ include_once("../koneksi.php");
             </ul>
           </li>
       </nav> 
+
+      <nav class="mt-2">
+        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+              <li class="nav-item">
+                <a href="poli/poli.php" class="nav-link active">
+                  <p>Poli</p>
+                </a>
+              </li>
+            </ul>
+          </li>
+      </nav>
+      <nav class="mt-2">
+        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+              <li class="nav-item">
+                <a href="pasien/pasien.php" class="nav-link active">
+                  <p>Pasien</p>
+                </a>
+              </li>
+            </ul>
+          </li>
+      </nav>
+      
         <!-- Menu Logout -->
         <nav class="mt-2">
     <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">

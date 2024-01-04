@@ -1,7 +1,20 @@
 <?php
+// Mulai sesi
+session_start();
 
 include_once("../../koneksi.php");
 
+// Menghitung jumlah total pasien
+$total_pasien_query = "SELECT COUNT(*) AS total_pasien FROM pasien";
+$total_pasien_result = mysqli_query($koneksi, $total_pasien_query);
+$total_pasien_row = mysqli_fetch_assoc($total_pasien_result);
+$total_pasien = $total_pasien_row['total_pasien'];
+
+// Membuat Nomor Rekam Medis (No_RM)
+$no_rm = date('Ym') . '-' . ($total_pasien + 1);
+// Eksekusi query untuk menampilkan data pasien
+$query = "SELECT ROW_NUMBER() OVER (ORDER BY id) AS no, id, nama, alamat, no_ktp, no_hp, no_rm FROM pasien";
+$result = mysqli_query($koneksi, $query);
 ?>
 
 <!DOCTYPE html>
@@ -83,7 +96,7 @@ include_once("../../koneksi.php");
     <nav class="mt-2">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
               <li class="nav-item">
-                <a href="dokter.php" class="nav-link active">
+                <a href="../dokter/dokter.php" class="nav-link active">
                   <p>Dokter</p>
                 </a>
               </li>
@@ -104,7 +117,7 @@ include_once("../../koneksi.php");
       <nav class="mt-2">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
               <li class="nav-item">
-                <a href="../pasien/pasien.php" class="nav-link active">
+                <a href="pasien.php" class="nav-link active">
                   <p>Pasien</p>
                 </a>
               </li>
@@ -133,12 +146,12 @@ include_once("../../koneksi.php");
   
   <div class="content-wrapper">
     <!-- Content Header (Page header) -->
-    <div class="content-header">
+    <section>
     <div class="content-header">
       <div class="container-fluid">
         <div class="row mb-2">
           <div class="col-sm-6">
-            <h1 class="m-0">Tambah/Edit Dokter</h1>
+            <h1 class="m-0">Tambah/Edit Pasien</h1>
           </div><!-- /.col -->
           <!-- /.col -->
         </div><!-- /.row -->
@@ -147,103 +160,87 @@ include_once("../../koneksi.php");
     <!-- /.content-header -->
 
     <!-- Main content -->
-    <section>
     <div class="container-fluid">
     <div calss = "row">
         <div class="card">
             <div class="card-header">
-    <div class="content-header">
-    <form action="tambah_dokter.php" method="post">
-    <div class="form-group">
-        <label for="nama">Nama Dokter</label>
+    <form action="tambah_pasien.php" method="post">
+      <div class="form-group">
+        <label for="nama">Nama</label>
         <input type="text" class="form-control" id="nama" name="nama" required>
-    </div>
-    <div class="form-group">
+      </div>
+
+      <div class="form-group">
         <label for="alamat">Alamat</label>
         <input type="text" class="form-control" id="alamat" name="alamat" required>
-    </div>
-    <div class="form-group">
-        <label for="no_hp">Nomor HP</label>
+      </div>
+
+      <div class="form-group">
+        <label for="no_ktp">No. KTP</label>
+        <input type="text" class="form-control" id="no_ktp" name="no_ktp" required>
+      </div>
+
+      <div class="form-group">
+        <label for="no_hp">No. HP</label>
         <input type="text" class="form-control" id="no_hp" name="no_hp" required>
-    </div>
-    <div class="form-group">
-        <label for="id_poli">Poli</label>
-        <select class="form-control" id="id_poli" name="id_poli" required>
-            <!-- Opsi default "Pilih" -->
-            <option value="" disabled selected>Pilih Poli</option>
+      </div>
 
-            <?php
-            // Query untuk mendapatkan daftar ID Poli dari database
-            $query_poli = "SELECT id, nama_poli FROM poli";
-            $result_poli = mysqli_query($koneksi, $query_poli);
+      <div class="form-group">
+    <label for="no_rm">No. RM:</label>
+    <span>
+      <!-- Tampilkan No_RM di sini -->
+      <?php echo $no_rm; ?>
+    </span>
+    <!-- Hidden input field for No. RM -->
+    <input type="hidden" name="no_rm" value="<?php echo $no_rm; ?>">
+  </div>
 
-            if ($result_poli) {
-                while ($row_poli = mysqli_fetch_assoc($result_poli)) {
-                    echo "<option value='" . $row_poli['id'] . "'>" . $row_poli['nama_poli'] . "</option>";
-                }
-            } else {
-                echo "<option value=''>Error fetching data</option>";
-            }
-            ?>
-        </select>
-    </div>
-    <div class="form-group">
-        <label for="nip">NIP</label>
-        <input type="text" class="form-control" id="nip" name="nip" required>
-    </div>
-    <div class="form-group">
-        <label for="password">Password</label>
-        <input type="password" class="form-control" id="password" name="password" required>
-    </div>
-    <button type="submit" class="btn btn-primary">Simpan</button>
-</form>
-</form>
-          </section>
+      <button type="submit" class="btn btn-primary">Simpan</button>
+    </form>
+</div>
+<div class="content-header">
+</section>
     <!-- Tabel untuk menampilkan daftar obat -->
     <div class="container-fluid">
+
     <div calss = "row">
         <div class="card">
             <div class="card-header">
-    <div class="content-header">
-    <h3 class="card-title">Dokter</h3>
-    <table class="table table-bordered">
+    <h3 class="card-title">Pasien</h3>
+  </div>
+  <table class="table table-bordered">
         <tr>
-            <th>No</th>
-            <th>Nama Dokter</th>
-            <th>Alamat</th>
-            <th>Nomor HP</th>
-            <th>Poli</th>
-            <th>NIP</th>
-            <th>Aksi</th>
+          <th>No.</th>
+          <th>Nama</th>
+          <th>Alamat</th>
+          <th>No. KTP</th>
+          <th>No. HP</th>
+          <th>No. RM</th>
         </tr>
-    <?php
-        require '../../koneksi.php';
 
-        $sql = "SELECT dokter.*, poli.nama_poli 
-                FROM dokter
-                JOIN poli ON dokter.id_poli = poli.id";
-        $result = mysqli_query($koneksi, $sql);
-
-        if ($result && mysqli_num_rows($result) > 0) {
-            $no = 1;
-            while ($row = mysqli_fetch_assoc($result)) {
-                echo "<tr>";
-                echo "<td>".$no."</td>";
-                echo "<td>".$row['nama']."</td>";
-                echo "<td>".$row['alamat']."</td>";
-                echo "<td>".$row['no_hp']."</td>";
-                echo "<td>".$row['nama_poli']."</td>"; // Menampilkan nama poli
-                echo "<td>".$row['nip']."</td>";
-                echo "<td class>";
-                echo "<a href='edit_dokter.php?id=". $row['id'] . "' class='btn btn-warning btn-sm'>Edit</a>";
-                echo "<a href='hapus_dokter.php?id=". $row['id'] . "' class='btn btn-danger btn-sm' onclick='return confirm(\"Apakah Anda yakin ingin menghapus dokter ini?\")'>Hapus</a>";
-                echo "</td>";
-                echo "</tr>";
-                $no++;
-            }
-        } 
+        <?php
+        // Menampilkan data pasien dalam bentuk tabel
+        while ($row = mysqli_fetch_assoc($result)) {
+          echo "<tr>";
+          echo "<td>" . $row['no'] . "</td>";
+          echo "<td>" . $row['nama'] . "</td>";
+          echo "<td>" . $row['alamat'] . "</td>";
+          echo "<td>" . $row['no_ktp'] . "</td>";
+          echo "<td>" . $row['no_hp'] . "</td>";
+          echo "<td>" . $row['no_rm'] . "</td>";
+          echo "<td>";
+          // Link for edit action (replace # with your edit page)
+          echo "<a href='edit_pasien.php?id=".$row['id']."' class='btn btn-warning btn-sm'>Edit</a>";
+          // Link for delete action (replace # with your delete page)
+          echo "<a href='hapus_pasien.php?id=".$row['id']."' class='btn btn-danger btn-sm' onclick='return confirm(\"Apakah Anda yakin ingin menghapus pasien ini?\")'>Hapus</a>";
+          echo "</td>";
+          echo "</tr>";
+        }
         ?>
-</table>
+      </table>
+    </div>
+  </div>
+</div>
  </div>
   <!-- /.content-wrapper -->
 

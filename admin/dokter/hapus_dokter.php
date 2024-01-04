@@ -1,19 +1,28 @@
 <?php
-include_once("../../koneksi.php");
+include '../../koneksi.php';
 
-if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    // Mendapatkan ID dokter dari parameter URL
-    $dokter_id = $_GET['id'];
+// Check if the 'id' parameter is set in the URL
+if (isset($_GET['id'])) {
+    $id_dokter = $_GET['id'];
 
-    // Query untuk menghapus dokter berdasarkan ID
-    $sql = "DELETE FROM dokter WHERE id = $dokter_id";
+    // Hapus jadwal_periksa yang terkait dengan dokter
+    $query_delete_jadwal = "DELETE FROM jadwal_periksa WHERE id_dokter = $id_dokter";
+    
+    if (mysqli_query($koneksi, $query_delete_jadwal)) {
+        // Hapus dokter setelah menghapus jadwal_periksa
+        $query_delete_dokter = "DELETE FROM dokter WHERE id = $id_dokter";
 
-    if (mysqli_query($koneksi, $sql)) {
-        // Redirect atau tindakan lain setelah berhasil hapus dokter
-        header("Location:dokter.php");
-        exit();
+        if (mysqli_query($koneksi, $query_delete_dokter)) {
+            // Redirect to the original page after deletion
+            header("Location: dokter.php");
+            exit();
+        } else {
+            echo "Error menghapus dokter: " . mysqli_error($koneksi);
+        }
     } else {
-        echo "Error deleting record: " . mysqli_error($koneksi);
+        echo "Error menghapus jadwal periksa: " . mysqli_error($koneksi);
     }
+} else {
+    echo "Parameter 'id' tidak ditemukan.";
 }
 ?>

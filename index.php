@@ -54,7 +54,7 @@
                     <p>Pilih peran Anda:</p>
                     <a href="admin/login.php" class="btn btn-dark btn-login">Admin</a>
                     <a href="dokter/login.php" class="btn btn-dark btn-login">Dokter</a>
-                    <a href="#" class="btn btn-dark btn-login">Pasien</a>
+                    <a href="pasien/login.php" class="btn btn-dark btn-login">Pasien</a>
                 </div>
             </div>
         </div>
