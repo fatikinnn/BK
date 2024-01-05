@@ -109,6 +109,12 @@ include_once("../../koneksi.php");
                 Memeriksa Pasien
               </p>
             </a>
+            <a href="../r_pasien/r_pasien.php" class="nav-link active">
+              <!--<i class="nav-icon fas fa-tachometer-alt"></i>-->
+              <p>
+                Riwayat Pasien
+              </p>
+            </a>
         <!-- Menu Logout -->
         <li class="nav-item">
             <a href="../../admin/logout.php" class="nav-link">
