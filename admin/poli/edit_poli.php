@@ -51,36 +51,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Poli</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-    <style>
-    body {
-      background-color: #f8f9fa;
-    }
+    <link rel="stylesheet" href="../../dist/css/adminlte.min.css">
 
-    .container {
-      margin-top: 50px;
-    }
-
-    form {
-      max-width: 600px;
-      margin: auto;
-    }
-
-    h2 {
-      text-align: center;
-    }
-
-    label {
-      font-weight: bold;
-    }
-
-    .form-group {
-      margin-bottom: 20px;
-    }
-
-    button {
-      margin-top: 20px;
-    }
-    </style>
 </head>
 <body>
     <h2 class="text-center mb-4">Edit Poli</h2>
