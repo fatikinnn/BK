@@ -152,7 +152,7 @@ if ($result === false) {
       <div class="container-fluid">
         <div class="row mb-2">
           <div class="col-sm-6">
-            <h1 class="m-0">Jadwal Periksa</h1>
+            <h1 class="m-0">Daftar Periksa Periksa</h1>
           </div><!-- /.col -->
           <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
@@ -171,22 +171,20 @@ if ($result === false) {
                 <h3 class="card-title">Periksa Pasien</h3>
             </div>
             <div class="card-body">
-            <a href="tambah.php" class="btn btn-primary mb-3">Periksa Pasien</a>
-
                     <table class="table table-bordered">
                         <thead>
-                            <tr>
-                                <th>No Antrian</th>
+                            <tr class ="text-center">
+                                <th style="width: 10%">No Antri</th>
                                 <th>Nama Pasien</th>
                                 <th>Keluhan</th>
-                                <th>Aksi</th>
+                                <th style="width: 15%">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php
                             while ($row = $result->fetch_assoc()) {
                             ?>
-                            <tr>
+                            <tr class="text-center">
                                 <td><?php echo $row["no_antrian"]; ?></td>
                                 <td><?php echo $row["nama_pasien"]; ?></td>
                                 <td><?php echo $row["keluhan"]; ?></td>
