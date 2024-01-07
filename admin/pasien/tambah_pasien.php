@@ -29,6 +29,7 @@
     } else {
         echo "Error: " . mysqli_error($koneksi);
     }
+    // mem
 
 
     // Menutup koneksi database

@@ -1,9 +1,18 @@
 <?php
+session_start();
 
 include_once("../../koneksi.php");
+
+// Check if the user is not logged in
+if (!isset($_SESSION['id'])) {
+    header("Location: ../../login.php");
+    exit();
+}
+
+$id_dokter = $_SESSION['id'];
+
 // Proses penambahan jadwal periksa
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $id_dokter = $_POST["id_dokter"];
     $hari = $_POST["hari"];
     $jam_mulai = $_POST["jam_mulai"];
     $jam_selesai = $_POST["jam_selesai"];
@@ -12,15 +21,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (strtotime($jam_mulai) >= strtotime($jam_selesai)) {
         $error_message = "Jam Mulai harus lebih awal dari Jam Selesai.";
     } else {
-        $sql = "INSERT INTO jadwal_periksa (id_dokter, hari, jam_mulai, jam_selesai) VALUES ('$id_dokter', '$hari', '$jam_mulai', '$jam_selesai')";
+        // Query untuk menambah jadwal periksa dengan status aktif default 'Y'
+        $sql = "INSERT INTO jadwal_periksa (id_dokter, hari, jam_mulai, jam_selesai, aktif) VALUES (?, ?, ?, ?, 'Y')";
+        $stmt = mysqli_prepare($koneksi, $sql);
 
-        if (mysqli_query($koneksi, $sql)) {
+        // Bind parameter
+        mysqli_stmt_bind_param($stmt, "isss", $id_dokter, $hari, $jam_mulai, $jam_selesai);
+
+        // Eksekusi statement
+        if (mysqli_stmt_execute($stmt)) {
             $_SESSION['success_message'] = "Jadwal periksa berhasil ditambahkan.";
             header("Location: jadwal_periksa.php");
             exit();
         } else {
             $error_message = "Error: " . $sql . "<br>" . mysqli_error($koneksi);
         }
+
+        // Tutup statement
+        mysqli_stmt_close($stmt);
     }
 }
 ?>
@@ -179,23 +197,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <h3 class="card-title">Tambah Jadwal Periksa Pasien</h3>
       </div>
       <div class="card-body">
-        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
+      <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
           <div class="form-group">
             <label for="id_dokter">Dokter:</label>
-            <select name="id_dokter" class="form-control" required>
+            <select name="id_dokter" class="form-control" disabled>
               <?php
-              $query_dokter = "SELECT id, nama FROM dokter";
+              $query_dokter = "SELECT id, nama FROM dokter WHERE id = $id_dokter";
               $result_dokter = mysqli_query($koneksi, $query_dokter);
 
-              if ($result_dokter) {
-                while ($row_dokter = mysqli_fetch_assoc($result_dokter)) {
+              if ($result_dokter && $row_dokter = mysqli_fetch_assoc($result_dokter)) {
                   echo "<option value='" . $row_dokter['id'] . "'>" . $row_dokter['nama'] . "</option>";
-                }
               } else {
-                echo "<option value=''>Error fetching data</option>";
+                  echo "<option value=''>Error fetching data</option>";
               }
               ?>
             </select>
+            <input type="hidden" name="id_dokter" value="<?php echo $id_dokter; ?>">
           </div>
           <div class="form-group">
             <label for="hari">Hari:</label>

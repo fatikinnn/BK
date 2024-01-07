@@ -1,7 +1,30 @@
 <?php
+session_start();
 
 include_once("../../koneksi.php");
 
+if(!isset($_SESSION['id'])) {
+    header("Location: ../../login.php");
+    exit();
+}
+
+$id_dokter = $_SESSION['id'];
+
+// Assuming you have a field 'nama' in the table where you store doctor details
+$sql_dokter = "SELECT nama FROM dokter WHERE id = ?";
+$stmt_dokter = mysqli_prepare($koneksi, $sql_dokter);
+mysqli_stmt_bind_param($stmt_dokter, "i", $id_dokter);
+mysqli_stmt_execute($stmt_dokter);
+$result_dokter = mysqli_stmt_get_result($stmt_dokter);
+
+if ($result_dokter && mysqli_num_rows($result_dokter) > 0) {
+    $row_dokter = mysqli_fetch_assoc($result_dokter);
+    $nama_dokter = $row_dokter['nama'];
+} else {
+    $nama_dokter = "Nama Dokter Tidak Ditemukan";
+}
+
+mysqli_stmt_close($stmt_dokter);
 ?>
 
 <!DOCTYPE html>
@@ -138,7 +161,7 @@ include_once("../../koneksi.php");
       <div class="container-fluid">
         <div class="row mb-2">
           <div class="col-sm-6">
-            <h1 class="m-0">Jadwal Periksa</h1>
+            <h1 class="m-0">Jadwal Praktik - Dr. <?php echo $nama_dokter; ?></h1>
           </div><!-- /.col -->
           <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
@@ -163,40 +186,57 @@ include_once("../../koneksi.php");
                     <thead>
                         <tr>
                             <th>No</th>
-                            <th>Nama Dokter</th>
                             <th>Hari</th>
                             <th>Jam Mulai</th>
                             <th>Jam Selesai</th>
-                            <th>Aksi</th> <!-- Tambah baris ini -->
+                            <th>Status</th>
+                            <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php
-                            $sql = "SELECT jadwal_periksa.id, dokter.nama, jadwal_periksa.hari, DATE_FORMAT(jadwal_periksa.jam_mulai, '%H:%i') AS jam_mulai, DATE_FORMAT(jadwal_periksa.jam_selesai, '%H:%i') AS jam_selesai
-                            FROM jadwal_periksa
-                            JOIN dokter ON jadwal_periksa.id_dokter = dokter.id";
-                            $result_jadwal = mysqli_query($koneksi, $sql);
+                          $sql = "SELECT id, hari, DATE_FORMAT(jam_mulai, '%H:%i') AS jam_mulai, DATE_FORMAT(jam_selesai, '%H:%i') AS jam_selesai, aktif
+                          FROM jadwal_periksa
+                          WHERE id_dokter = ?";
+                        $stmt = mysqli_prepare($koneksi, $sql);
+
+                        // Bind parameter
+                        mysqli_stmt_bind_param($stmt, "i", $id_dokter);
+
+                        // Eksekusi statement
+                        mysqli_stmt_execute($stmt);
+
+                        // Ambil hasil
+                        $result_jadwal = mysqli_stmt_get_result($stmt);
 
                         if ($result_jadwal && mysqli_num_rows($result_jadwal) > 0) {
                             $no = 1;
                             while ($row_jadwal = mysqli_fetch_assoc($result_jadwal)) {
-                                echo "<tr>";
-                                echo "<td>".$no."</td>";
-                                echo "<td>".$row_jadwal['nama']."</td>";
-                                echo "<td>".$row_jadwal['hari']."</td>";
-                                echo "<td>".$row_jadwal['jam_mulai']."</td>";
-                                echo "<td>".$row_jadwal['jam_selesai']."</td>";
-                                echo "<td>
-                                        <a href='edit.php?id=".$row_jadwal['id']."' class='btn btn-warning btn-sm'>Edit</a>
-                                        <a href='hapus.php?id=".$row_jadwal['id']."' class='btn btn-danger btn-sm'>Hapus</a>
-                                    </td>";
-                                echo "</tr>";
-                                $no++;
-
-                            }
+                              echo "<tr>";
+                              echo "<td>".$no."</td>";
+                              echo "<td>".$row_jadwal['hari']."</td>";
+                              echo "<td>".$row_jadwal['jam_mulai']."</td>";
+                              echo "<td>".$row_jadwal['jam_selesai']."</td>";
+                              echo "<td>";
+                              if ($row_jadwal['aktif'] == 'Y') {
+                                  echo "Aktif";
+                              } else {
+                                  echo "Non-Aktif";
+                              }
+                              echo "</td>";
+                              echo "<td>
+                                      <a href='edit.php?id=".$row_jadwal['id']."' class='btn btn-warning btn-sm'>Edit</a>
+                                      <a href='ubah_status.php?id=".$row_jadwal['id']."' class='btn btn-primary btn-sm'>Ubah Status</a>
+                                  </td>";
+                              echo "</tr>";
+                              $no++;
+                          }
                         } else {
-                            echo "<tr><td colspan='6'>Belum ada data jadwal periksa.</td></tr>";
+                            echo "<tr><td colspan='5'>Belum ada data jadwal periksa.</td></tr>";
                         }
+
+                        // Tutup statement
+                        mysqli_stmt_close($stmt);
                         ?>
                     </tbody>
                 </table>

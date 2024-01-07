@@ -63,7 +63,7 @@
                         <label for="no_hp" class="form-label">No HP</label>
                         <input type="text" class="form-control" id="no_hp" name="no_hp" required>
                     </div>
-                    <button type="submit" class="btn btn-primary btn-block">Login</button>
+                    <button type="submit" class="btn btn-primary btn-block">Daftar</button>
                 </form>
                 </div>
 

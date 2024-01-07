@@ -1,7 +1,17 @@
 <?php
 include_once("../../koneksi.php");
 
-// Query untuk mengambil data
+// Check if the doctor is logged in
+session_start();
+if (!isset($_SESSION['id'])) {
+    header("Location: login.php"); // Redirect to login page if not logged in
+    exit();
+}
+
+// Get the logged-in doctor's ID
+$id_dokter = $_SESSION['id'];
+
+// Query to retrieve data for the specific doctor
 $query = "SELECT 
             daftar_poli.no_antrian,
             pasien.id AS id_pasien,
@@ -9,15 +19,18 @@ $query = "SELECT
             daftar_poli.keluhan
           FROM pasien
           INNER JOIN daftar_poli ON pasien.id = daftar_poli.id_pasien
-          LEFT JOIN periksa ON daftar_poli.id = periksa.id_daftar_poli";
+          LEFT JOIN periksa ON daftar_poli.id = periksa.id_daftar_poli
+          INNER JOIN jadwal_periksa ON daftar_poli.id_jadwal = jadwal_periksa.id
+          WHERE jadwal_periksa.id_dokter = $id_dokter";
 
 $result = $koneksi->query($query);
 
-// Periksa apakah query berhasil dijalankan
+// Check if the query was successful
 if ($result === false) {
     die("Error: " . $koneksi->error);
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -50,12 +63,6 @@ if ($result === false) {
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
 <div class="wrapper">
-
-        <?php
-        // Periksa apakah ada data yang ditemukan
-        if ($result->num_rows > 0) {
-        ?>
-
   <!-- Preloader -->
   <div class="preloader flex-column justify-content-center align-items-center">
   </div>
@@ -177,9 +184,10 @@ if ($result === false) {
                 <h3 class="card-title">Periksa Pasien</h3>
             </div>
             <div class="card-body">
+            <?php if ($result->num_rows > 0): ?>
                     <table class="table table-bordered">
                         <thead>
-                            <tr class ="text-center">
+                            <tr class="text-center">
                                 <th style="width: 10%">No Antri</th>
                                 <th>Nama Pasien</th>
                                 <th>Keluhan</th>
@@ -187,32 +195,26 @@ if ($result === false) {
                             </tr>
                         </thead>
                         <tbody>
-                            <?php
-                            while ($row = $result->fetch_assoc()) {
-                            ?>
-                            <tr class="text-center">
-                                <td><?php echo $row["no_antrian"]; ?></td>
-                                <td><?php echo $row["nama_pasien"]; ?></td>
-                                <td><?php echo $row["keluhan"]; ?></td>
-                                <td>
-                                    <a href='memeriksa.php?id_pasien=<?php echo $row["id_pasien"]; ?>' class= "btn btn-primary " style="text-center" >Memeriksa</a>
-                                </td>
-                            </tr>
-                            <?php
-                            }
-                            ?>
+                            <?php while ($row = $result->fetch_assoc()): ?>
+                                <tr class="text-center">
+                                    <td><?php echo $row["no_antrian"]; ?></td>
+                                    <td><?php echo $row["nama_pasien"]; ?></td>
+                                    <td><?php echo $row["keluhan"]; ?></td>
+                                    <td>
+                                        <a href='memeriksa.php?id_pasien=<?php echo $row["id_pasien"]; ?>' class="btn btn-primary" style="text-center">Memeriksa</a>
+                                    </td>
+                                </tr>
+                            <?php endwhile; ?>
                         </tbody>
                     </table>
+                <?php else: ?>
+                    <p class="text-center">Tidak ada data ditemukan.</p>
+                <?php endif; ?>
             </div>
         </div>
     </div>
 </section>
-<?php
-        }else{
-          echo "<div class='container-fluid'><p>Tidak ada data ditemukan.</p></div>";
 
-        }
-        ?>
   <!-- /.content-wrapper -->
 
   <!-- Control Sidebar -->

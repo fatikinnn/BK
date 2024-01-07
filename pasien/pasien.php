@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $sqlJadwalDokter = "SELECT jadwal.*, dokter.nama AS nama_dokter 
                                 FROM jadwal_periksa jadwal
                                 JOIN dokter ON jadwal.id_dokter = dokter.id
-                                WHERE dokter.id_poli = $idPoliTerpilih";
+                                WHERE dokter.id_poli = $idPoliTerpilih AND jadwal.aktif = 'Y'";
 
             $resultJadwalDokter = mysqli_query($koneksi, $sqlJadwalDokter);
 
@@ -246,14 +246,14 @@ mysqli_close($koneksi);
     <?php if (isset($namaPoliTerpilih)) : ?>
     <form action="daftar_poli.php" method="post">
         <input type="hidden" name="id_poli" value="<?php echo $idPoliTerpilih; ?>">
-    </label>
         <label for="id_jadwal">Pilih Jadwal dan Dokter di <?php echo $namaPoliTerpilih; ?></label><br>
         <select name="id_jadwal" id="id_jadwal" class="form-control">
             <?php while ($rowJadwalDokter = mysqli_fetch_assoc($resultJadwalDokter)) : ?>
                 <option value="<?php echo $rowJadwalDokter['id']; ?>">
-                <?php 
-echo $rowJadwalDokter['hari'] . ', ' . date("H:i", strtotime($rowJadwalDokter['jam_mulai'])) . ' - ' . date("H:i", strtotime($rowJadwalDokter['jam_selesai'])) . ' | Dr. ' . $rowJadwalDokter['nama_dokter'];
-?>                </option>
+                    <?php 
+                        echo $rowJadwalDokter['hari'] . ', ' . date("H:i", strtotime($rowJadwalDokter['jam_mulai'])) . ' - ' . date("H:i", strtotime($rowJadwalDokter['jam_selesai'])) . ' | Dr. ' . $rowJadwalDokter['nama_dokter'];
+                    ?>                
+                </option>
             <?php endwhile; ?>
         </select>
         <div class="mb-3">    

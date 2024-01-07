@@ -1,21 +1,23 @@
 <?php
-// Mulai sesi
+// r_pasien.php
 session_start();
 
 include_once("../../koneksi.php");
 
-// Menghitung jumlah total pasien
-$total_pasien_query = "SELECT COUNT(*) AS total_pasien FROM pasien";
-$total_pasien_result = mysqli_query($koneksi, $total_pasien_query);
-$total_pasien_row = mysqli_fetch_assoc($total_pasien_result);
-$total_pasien = $total_pasien_row['total_pasien'];
+        // Periksa apakah dokter sudah login
+        if (!isset($_SESSION['id'])) {
+            // Redirect jika dokter belum login
+            header("Location: ../login.php");
+            exit();
+        }
 
-// Membuat Nomor Rekam Medis (No_RM)
-$no_rm = date('Ym') . '-' . ($total_pasien + 1);
-// Eksekusi query untuk menampilkan data pasien
-$query = "SELECT ROW_NUMBER() OVER (ORDER BY id) AS no, id, nama, alamat, no_ktp, no_hp, no_rm FROM pasien";
-$result = mysqli_query($koneksi, $query);
-?>
+        // Ambil ID dokter dari sesi
+        $id_dokter = $_SESSION['id'];
+
+        $query = "SELECT *
+        FROM pasien";
+        $result = mysqli_query($koneksi, $query);
+        ?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -111,7 +113,7 @@ $result = mysqli_query($koneksi, $query);
         <nav class="mt-2">
     <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
         <li class="nav-item">
-            <a href="../logout.php" class="nav-link">
+            <a href="../../logout.php" class="nav-link">
                 <i class="nav-icon fas fa-sign-out-alt"></i>
                 <p>
                     Logout
@@ -156,39 +158,125 @@ $result = mysqli_query($koneksi, $query);
                 <h3 class="card-title">Riwayat Periksa Pasien</h3>
   </div>
   <table class="table table-bordered">
-        <tr>
-          <th>No.</th>
-          <th>Nama</th>
-          <th>Alamat</th>
-          <th>No. KTP</th>
-          <th>No. HP</th>
-          <th>No. RM</th>
-        </tr>
+    <thead>
+              <tr>
+                <th>No.</th>
+                <th>Nama</th>
+                <th>Alamat</th>
+                <th>No. KTP</th>
+                <th>No. HP</th>
+                <th>No. RM</th>
+              </tr>
+    </thead>
+    <tbody>
 
-        <?php
-        // Menampilkan data pasien dalam bentuk tabel
-        while ($row = mysqli_fetch_assoc($result)) {
-          echo "<tr>";
-          echo "<td>" . $row['no'] . "</td>";
-          echo "<td>" . $row['nama'] . "</td>";
-          echo "<td>" . $row['alamat'] . "</td>";
-          echo "<td>" . $row['no_ktp'] . "</td>";
-          echo "<td>" . $row['no_hp'] . "</td>";
-          echo "<td>" . $row['no_rm'] . "</td>";
-          echo "<td>";
-          // Link for edit action (replace # with your edit page)
-          echo "<a href='#' class='btn btn-warning btn-sm' data-toggle='modal' data-target='#detailModal' data-id='".$row['id']."'>Cek Detail</a>";
-          echo "</td>";
-          echo "</tr>";
-        }
-        ?>
-      </table>
-    </div>
-  </div>
+              <?php
+              // Menampilkan data pasien dalam bentuk tabel
+              $no = 1; // Initialize $no here
+              if ($result->num_rows == 0) {
+                echo "<tr><td colspan='7' align='center'>Tidak ada data</td></tr>";
+            } else {
+                while ($d = $result->fetch_assoc()) {
+            ?>
+                    <tr>
+                        <td><?= $no++; ?></td>
+                        <td><?= $d['nama']; ?></td>
+                        <td><?= $d['alamat']; ?></td>
+                        <td><?= $d['no_ktp']; ?></td>
+                        <td><?= $d['no_hp']; ?></td>
+                        <td><?= $d['no_rm']; ?></td>
+                        <td>
+                            <button data-toggle="modal" data-target="#detailModal<?= $d['id'] ?>" class="btn btn-warning">Detail Riwayat Periksa
+                            </button>
+                        </td>
+                    </tr>
+            <?php
+                }
+            }
+            ?>
+        </tbody>
+        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 </div>
- </div>
-  <!-- /.content-wrapper -->
 
+<?php
+$result->data_seek(0);
+while ($d = $result->fetch_assoc()) {
+    $no_detail = 1;
+    $pasien_id = $d['id'];
+    $data2 = $koneksi->query("SELECT 
+                p.nama AS 'nama_pasien',
+                pr.*,
+                d.nama AS 'nama_dokter',
+                dpo.keluhan AS 'keluhan',
+                GROUP_CONCAT(o.nama_obat SEPARATOR ', ') AS 'obat'
+                FROM periksa pr
+                LEFT JOIN daftar_poli dpo ON (pr.id_daftar_poli = dpo.id)
+                LEFT JOIN jadwal_periksa jp ON (dpo.id_jadwal = jp.id)
+                LEFT JOIN dokter d ON (jp.id_dokter = d.id)
+                LEFT JOIN pasien p ON (dpo.id_pasien = p.id)
+                LEFT JOIN detail_periksa dp ON (pr.id = dp.id_periksa)
+                LEFT JOIN obat o ON (dp.id_obat = o.id)
+                WHERE dpo.id_pasien = '$pasien_id'
+                GROUP BY pr.id
+                ORDER BY pr.tgl_periksa DESC;");
+?>
+    <div class="modal fade" id="detailModal<?= $d['id'] ?>" tabindex="-1" role="dialog" aria-labelledby="exampleModalScrollableTitle" aria-hidden="true" data-backdrop="static">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalScrollableTitle">Riwayat <?= $d['nama'] ?></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <?php if ($data2->num_rows == 0) : ?>
+                        <p class="my-2 text-danger">Tidak Ditemukan Riwayat Periksa</p>
+                    <?php else : ?>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th scope="col">No</th>
+                                    <th scope="col">Tanggal Periksa</th>
+                                    <th scope="col">Nama Pasien</th>
+                                    <th scope="col">Nama Dokter</th>
+                                    <th scope="col">Keluhan</th>
+                                    <th scope="col">Catatan</th>
+                                    <th scope="col">Obat</th>
+                                    <th scope="col">Total Biaya</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php while ($da = $data2->fetch_assoc()) : ?>
+                                    <tr>
+                                        <td><?= $no_detail++; ?></td>
+                                        <td><?= $da['tgl_periksa']; ?></td>
+                                        <td><?= $da['nama_pasien']; ?></td>
+                                        <td><?= $da['nama_dokter']; ?></td>
+                                        <td><?= $da['keluhan']; ?></td>
+                                        <td><?= $da['catatan']; ?></td>
+                                        <td><?= $da['obat']; ?></td>
+                                        <td><?= $da['biaya_periksa']; ?></td>
+                                    </tr>
+                                <?php endwhile ?>
+                            </tbody>
+                        </table>
+                    <?php endif ?>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+<?php
+}
+?>
   <!-- Control Sidebar -->
   <aside class="control-sidebar control-sidebar-dark">
     <!-- Control sidebar content goes here -->
@@ -231,41 +319,5 @@ $result = mysqli_query($koneksi, $query);
 <!-- AdminLTE dashboard demo (This is only for demo purposes) -->
 <script src="../../dist/js/pages/dashboard.js"></script>
 </body>
-<script>
-  $(document).ready(function () {
-    // Tangani peristiwa klik tombol "Cek Detail"
-    $('.btn-warning').on('click', function () {
-      var id = $(this).data('id');
-      // Gunakan AJAX untuk mengambil data dari server (ganti 'fetch_detail.php' dengan file PHP sesungguhnya)
-      $.ajax({
-        url: 'detail.php',
-        type: 'POST',
-        data: { id: id },
-        success: function (data) {
-          // Perbarui konten modal dengan data yang diambil
-          $('.modal-body').html(data);
-        }
-      });
-    });
-  });
-</script>
 
-<div class="modal fade" id="detailModal" tabindex="-1" role="dialog" aria-labelledby="detailModalLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="detailModalLabel">Detail Pasien</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <!-- Konten modal akan dimuat secara dinamis menggunakan JavaScript -->
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
-      </div>
-    </div>
-  </div>
-</div>
 </html>
